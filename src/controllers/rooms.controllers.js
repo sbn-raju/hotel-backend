@@ -57,6 +57,8 @@ const addRoomControllers = async (req, res) => {
           throw new Error(`Metadata not found for file ${fileOriginalname}`);
         }
 
+        console.log(file);
+
         const singleFile = {
           id,
           path: `https://hotel-backend-production-a5b0.up.railway.app/uploads/${file?.path.split("uploads\\")[1]}`,
