@@ -1,5 +1,4 @@
 const ExtrasLog = require("../models/Logs.models.js");
-const { v4: uuidv4 } = require('uuid'); // Make sure to install uuid: npm install uuid
 
 // 1. Fetch All ExtrasLogs
 const getAllExtrasLogsController = async(req, res) => {
