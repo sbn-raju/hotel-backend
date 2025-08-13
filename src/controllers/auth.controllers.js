@@ -148,7 +148,7 @@ const authGoogleCallBackController = async(req, res)=>{
 
     //Redirecting the user to the payment page.
     console.log("This is the call back fun" , accessToken, refreshToken);
-    return res.redirect(`http://localhost:5173/room/checkout`);
+    return res.redirect(`https://hotel-frontend-three-khaki.vercel.app/room/checkout`);
 }
 
 

@@ -8,7 +8,7 @@ const generateRefreshToken = require("../helper/generateRefreshToken.helper.js")
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "http://localhost:8080/api/v1.hotel/auth/google/callback"
+  callbackURL: "https://hotel-backend-production-a5b0.up.railway.app/api/v1.hotel/auth/google/callback"
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
