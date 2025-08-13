@@ -43,6 +43,9 @@ const PORT = process.env.PORT;
 //Here call the database connection function.
 connectDb();
 
+app.get("/", (req, res) => {
+  res.send("Hello Railway!");
+});
 
 //Routes.
 app.use("/api/v1.hotel/auth", authRoutes);
