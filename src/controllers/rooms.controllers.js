@@ -59,7 +59,7 @@ const addRoomControllers = async (req, res) => {
 
         const singleFile = {
           id,
-          path: `http://localhost:8080/uploads/${file?.path.split("uploads\\")[1]}`,
+          path: `https://hotel-backend-production-a5b0.up.railway.app/uploads/${file?.path.split("uploads\\")[1]}`,
           isMain: fileMetaData?.isMain,
           isThumbnail: fileMetaData?.isThumbnail,
         };
