@@ -18,7 +18,7 @@ const app = express();
 
 //Adding cors.
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://hotel-frontend-three-khaki.vercel.app"],
     credentials: true,
 }));
 
