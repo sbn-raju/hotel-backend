@@ -1,0 +1,12 @@
+# Blocking private and heavy files to be get pushed to github.
+#Blocking the node modules.
+node_modules
+
+#Blocking ENV files.
+.env
+*.env
+.env.*
+
+
+#Blocking the private files
+rough.txt
