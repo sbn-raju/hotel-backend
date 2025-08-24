@@ -11,6 +11,11 @@ const orderSchema = new mongoose.Schema({
         type: Object,
         required: true
     },
+    number_of_rooms:{
+        type: Number,
+        required: true,
+        default: 1
+    },
     payment_response:{
         type: Object,
     },

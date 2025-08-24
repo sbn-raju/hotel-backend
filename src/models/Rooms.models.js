@@ -54,6 +54,10 @@ let roomSchema = new mongoose.Schema({
         type: [Object],
         required: true
     },
+    number_of_rooms:{
+        type: Number,
+        default: 1
+    },
     room_price:{
         type: Number,
         required: true,

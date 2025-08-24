@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const Orders = require("../../models/Order.models.js"); // Make sure the model name matches
 
 const paymentVerificationControllers = async (req, res) => {
-  console.log(req); // You may want to remove this in production
+//   console.log(req); // You may want to remove this in production
 
   const body = await req.text();
   const signature = req.headers.get("x-signature-razorpay");

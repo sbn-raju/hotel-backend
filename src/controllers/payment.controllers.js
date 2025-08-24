@@ -13,7 +13,7 @@ const path = require("path");
 const generateOrderControllers = async(req, res)=>{
 
     //Getting the details from the body.
-    const { name, email, room_id, user_id, check_in, check_out, phone, guests}  = req.body;
+    const { name, email, room_id, user_id, check_in, check_out, phone, guests, rooms}  = req.body;
     
     //Validation check.
     if(!name || !email || !room_id || !user_id || !check_in || !check_out){
@@ -65,7 +65,8 @@ const generateOrderControllers = async(req, res)=>{
                   checkIn: check_in,
                   roomId: room_id,
                   guests: guests,
-                  mobileNo: phone
+                  mobileNo: phone,
+                  rooms: rooms
                 }
             ]
         }
@@ -78,6 +79,7 @@ const generateOrderControllers = async(req, res)=>{
             order_id: newOrder?.id,
             order_response: newOrder,
             user_id: user_id,
+            number_of_rooms: rooms,
             status: newOrder?.status === "created" ? "pending" : "pending"
         });
 
