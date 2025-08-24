@@ -4,6 +4,7 @@ const crypto  = require("crypto");
 
 //Getting the databse from the error.
 const paymentVerificationControllers = async(req, res) =>{
+    console.log(req);
 
     //Getting the webhook from the razorpay.
     const body = await req.text();

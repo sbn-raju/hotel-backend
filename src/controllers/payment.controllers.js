@@ -54,7 +54,7 @@ const generateOrderControllers = async(req, res)=>{
 
         //Making the order.
         const option = {
-            amount: parseFloat(finalAmount.toFixed(2))  * 100, // Razorpay expects amount in paisa
+            amount: parseInt(finalAmount.toFixed(2))  * 100, // Razorpay expects amount in paisa
             currency: "INR",
             receipt: receiptId,
             notes:[

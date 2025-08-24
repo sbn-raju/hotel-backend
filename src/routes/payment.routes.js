@@ -1,5 +1,6 @@
 const express = require("express");
 const { generateOrderControllers, getStatusPaymentControllers, getOrdersControllers } = require("../controllers/payment.controllers");
+const { paymentVerificationControllers } = require("../webhooks/razorpay/verifyPayment.webhook");
 
 
 
@@ -13,6 +14,9 @@ paymentRoutes.route("/status/verify-payment").get(getStatusPaymentControllers);
 
 
 paymentRoutes.route('/fetch').get(getOrdersControllers);
+
+//Webhook.
+paymentRoutes.route('webhook/status-payment').post(paymentVerificationControllers);
 
 
 module.exports = paymentRoutes
