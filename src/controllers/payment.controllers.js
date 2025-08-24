@@ -161,23 +161,92 @@ const getOrdersControllers = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    // Optional filter: status
-    const status = req.query.status; // 'pending' | 'failed' | 'success'
+    // Optional filters
+    const status = req.query.status;              // order status
+    const paymentStatus = req.query.paymentStatus; // payment status filter
+    const startDate = req.query.startDate;        // order creation start
+    const endDate = req.query.endDate;            // order creation end
+    const checkInStart = req.query.checkInStart;  // check-in start
+    const checkInEnd = req.query.checkInEnd;      // check-in end
+    const search = req.query.search;              // search term
     const filter = {};
 
-    if (status) {
+    // Status filter
+    if (status && status !== 'all') {
       filter.status = status;
     }
 
-    // Fetch orders with filter, skip, limit, and populate user details if needed
-    const orders = await Orders.find(filter)
+    // Payment status filter
+    if (paymentStatus && paymentStatus !== 'all') {
+      filter.paymentStatus = paymentStatus; // assumes your model has `paymentStatus`
+    }
+
+    // Date range filter (order creation date)
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = end;
+      }
+    }
+
+    // Check-in date filter
+    if (checkInStart || checkInEnd) {
+      filter.checkInDate = {}; // assumes your schema has `checkInDate`
+      if (checkInStart) {
+        filter.checkInDate.$gte = new Date(checkInStart);
+      }
+      if (checkInEnd) {
+        const end = new Date(checkInEnd);
+        end.setHours(23, 59, 59, 999);
+        filter.checkInDate.$lte = end;
+      }
+    }
+
+    // Search filter (order_id, user name, or email)
+    if (search) {
+      const searchRegex = new RegExp(search, 'i'); 
+      filter.$or = [{ order_id: searchRegex }];
+    }
+
+    // Base query
+    let query = Orders.find(filter)
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 }) // Most recent first
-      .populate('user_id', 'name email'); // Optional: populate user info (adjust fields as needed)
+      .sort({ createdAt: -1 })
+      .populate('user_id', 'name email');
 
-    // Get total count for pagination
-    const total = await Orders.countDocuments(filter);
+    let orders = await query;
+
+    // Extra filtering for populated user fields
+    if (search) {
+      const searchLower = search.toLowerCase();
+      orders = orders.filter(order => {
+        const orderIdMatch = order.order_id?.toLowerCase().includes(searchLower);
+        const nameMatch = order.user_id?.name?.toLowerCase().includes(searchLower);
+        const emailMatch = order.user_id?.email?.toLowerCase().includes(searchLower);
+        return orderIdMatch || nameMatch || emailMatch;
+      });
+    }
+
+    // Total count
+    const totalQuery = search
+      ? await Orders.find(filter).populate('user_id', 'name email').then(results => {
+          const searchLower = search.toLowerCase();
+          return results.filter(order => {
+            const orderIdMatch = order.order_id?.toLowerCase().includes(searchLower);
+            const nameMatch = order.user_id?.name?.toLowerCase().includes(searchLower);
+            const emailMatch = order.user_id?.email?.toLowerCase().includes(searchLower);
+            return orderIdMatch || nameMatch || emailMatch;
+          }).length;
+        })
+      : await Orders.countDocuments(filter);
+
+    const total = typeof totalQuery === 'number' ? totalQuery : totalQuery.length;
 
     return res.status(200).json({
       success: true,
@@ -188,6 +257,8 @@ const getOrdersControllers = async (req, res) => {
         page,
         limit,
         pages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
       },
     });
   } catch (error) {
@@ -206,4 +277,3 @@ module.exports = {
     getStatusPaymentControllers,
     getOrdersControllers
 }
- 
