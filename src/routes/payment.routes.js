@@ -16,7 +16,7 @@ paymentRoutes.route("/status/verify-payment").get(getStatusPaymentControllers);
 paymentRoutes.route('/fetch').get(getOrdersControllers);
 
 //Webhook.
-paymentRoutes.route('webhook/status-payment').post(paymentVerificationControllers);
+paymentRoutes.route('/v1/webhook/status-payment').post(paymentVerificationControllers);
 
 
 module.exports = paymentRoutes
