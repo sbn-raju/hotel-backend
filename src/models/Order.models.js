@@ -11,6 +11,9 @@ const orderSchema = new mongoose.Schema({
         type: Object,
         required: true
     },
+    payment_response:{
+        type: Object,
+    },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

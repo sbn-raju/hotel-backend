@@ -1,84 +1,83 @@
-const { db } = require("../../database/db.connect.js");
-const crypto  = require("crypto");
+const crypto = require("crypto");
+const Orders = require("../../models/Order.models.js"); // Make sure the model name matches
 
+const paymentVerificationControllers = async (req, res) => {
+  // console.log(req); // You may want to remove this in production
 
-//Getting the databse from the error.
-const paymentVerificationControllers = async(req, res) =>{
-    console.log(req);
+  const body = await req.text();
+  const signature = req.headers.get("x-signature-razorpay");
 
-    //Getting the webhook from the razorpay.
-    const body = await req.text();
-    const signature = req.headers.get("x-signature-razorpay");
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZOR_PAY_SECRET)
+    .update(body)
+    .digest("hex");
 
+  if (expectedSignature !== signature) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Signature",
+    });
+  }
 
-    const expectedSignature  = crypto
-                                .createHmac("sha256", process.env.RAZOR_PAY_SECRET)
-                                .update(body)
-                                .digest('hex');
+  const event = JSON.parse(body);
 
-    if(expectedSignature !== signature){
-       return res.status(400).json({
-        success: false,
-        message: "Invalid Signature"
-       }); 
-    }
+  try {
+    if (event?.event === "payment.captured") {
+      const paymentId = event.payload?.payment?.entity?.id;
+      const orderId = event.payload?.payment?.entity?.order_id;
 
-    const event = JSON.parse(body);
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID not found in webhook payload",
+        });
+      }
 
-    try {
-        if(event?.event === "payment.captured"){
-
-            //We have to change the status of the order from pending to completed here.
-            const updatePaymentStatusQuery = "UPDATE orders SET status_order = ?, status_payment = ? WHERE order_id = ?";
-            const updatePaymentStatusValue = [event?.payload?.payment?.entity?.status, event?.payload?.payment?.entity?.status, event?.payload?.payment?.entity?.order_id];
-
-            //Db Querying to change the status of the payment from pending to captured.
-            db.query(updatePaymentStatusQuery, updatePaymentStatusValue, (error, result)=>{
-                if(error){
-                    throw new Error(error);
-                }
-
-                if(result.length != 0){
-                    //Can send in the invoice as well.
-                    return res.status(200).json({
-                        success : true,
-                        received: true
-                    });
-                }
-            })
-            
-        
-        }else if(event?.event === "payment.failed"){
-
-            //We have to change the status of the order from pending to completed here.
-            const updatePaymentStatusQuery = "UPDATE orders SET status_order = ?, status_payment = ? WHERE order_id = ?";
-            const updatePaymentStatusValue = [event?.payload?.payment?.entity?.status, event?.payload?.payment?.entity?.status, event?.payload?.payment?.entity?.order_id];
-
-            //Db Querying to change the status of the payment from pending to captured.
-            db.query(updatePaymentStatusQuery, updatePaymentStatusValue, (error, result)=>{
-                if(error){
-                    throw new Error(error);
-                }
-
-                if(result.length != 0){
-                    //Can send in the invoice as well.
-                    return res.status(200).json({
-                        success : true,
-                        received: true
-                    });
-                }
-            });
-
-            
+      // Update the order status to 'success'
+      await Orders.findOneAndUpdate(
+        { order_id: orderId },
+        {
+          status: "success",
+          payment_response: event, // Save the full event as order_response
         }
-    } catch (error) {
-        return res.status(500).json({ 
-            error: "Webhook failed"
-         });
-    }
-}
+      );
 
+      return res.status(200).json({
+        success: true,
+        message: "Order status updated to success",
+      });
+    } else if (event?.event === "payment.failed") {
+      const orderId = event.payload?.payment?.entity?.order_id;
+
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID not found in webhook payload",
+        });
+      }
+
+      // Update the order status to 'failed'
+      await Orders.findOneAndUpdate(
+        { order_id: orderId },
+        {
+          status: "failed",
+          payment_response: event,
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Order status updated to failed",
+      });
+    }
+  } catch (error) {
+    console.log("Webhook failed!!")
+    return res.status(500).json({
+      error: "Webhook failed",
+    });
+  }
+};
 
 module.exports = {
-    paymentVerificationControllers
-}
+  paymentVerificationControllers,
+};
